@@ -1,0 +1,101 @@
+import random
+import sys
+
+#Opis gry: Gracz pierwszy wykonuje ruch, po którym następuje losowy ruch komputera. W przypadku, gdy gracz poda wybrane wcześniej pole lub wpisze błędną wartość program poprosi o ponowną próbę.
+
+plansza = [i for i in range(0, 25)]
+gracz, komputer = '', ''
+
+wygrane = ((0, 1, 2, 3, 4), (5, 6, 7, 8, 9), (10, 11, 12, 13, 14), (15, 16, 17, 18, 19), (20, 21, 22, 23, 24), (0, 5, 10, 15, 20), (1, 6, 11, 16, 21), (2, 7, 12, 17, 22), (3, 8, 13, 18, 23),
+           (4, 9, 14, 19, 24), (0, 6, 12, 18, 24), (4, 8, 12, 16,20))
+
+tabela = range(1,26)
+
+print("Kółko i krzyżyk\nZasady gry: Pola w tabeli są ponumerowane od 1 do 25. Wygrywa użytkownik, który jako pierwszy zajmie 5 pól w jednej linii\n")
+
+def wyświetl_planszę():
+    x = 1
+    for i in plansza:
+        odstęp = ' | '
+        if x % 5 == 0:
+            odstęp  = ' \n'
+            if i != 1: odstęp  += '\n';
+        znacznik = ' '
+        if i in ('X', 'O'): znacznik = i;
+        x += 1
+        print(znacznik, end=odstęp)
+
+def sprawdź_ruch(tab, gracz, ruch):
+    if ruch in tabela and tab[ruch - 1] == ruch - 1:
+        return True
+    return False
+
+
+def czy_wygrana(tab, gracz, ruch):
+    pozycje = []
+    x = 0
+    for i in tab:
+        if i == gracz: pozycje.append(x);
+        x += 1
+    wygrana = True
+    for y in wygrane:
+        wygrana = True
+        for ix in y:
+            if tab[ix] != gracz:
+                wygrana = False
+                break
+        if wygrana == True:
+            break
+    return wygrana
+
+def ruch_gracza(tab, gracz, ruch, undo=False):
+    if sprawdź_ruch(tab, gracz, ruch):
+        tab[ruch - 1] = gracz
+        wygrana = czy_wygrana(tab, gracz, ruch)
+        if undo:
+            tab[ruch - 1] = ruch - 1
+        return (True, wygrana)
+    return (False, False)
+
+def ruch_komputera():
+    ruch = -1
+    for i in range(1, 26):
+        if ruch_gracza(plansza, komputer, i, True)[1]:
+            ruch = i
+            break
+    if ruch == -1:
+        for i in range(1, 26):
+            i = random.randint(0, 25)
+            if ruch == -1 and sprawdź_ruch(plansza, komputer, i):
+                ruch = i
+                break
+    return ruch_gracza(plansza, komputer, ruch)
+
+def przebieg_gry():
+    return plansza.count('X') + plansza.count('O') != 25
+
+gracz, komputer = ('X', 'O')
+print('Gracz X vs Komputer 0' )
+wynik = 'Remis!'
+while przebieg_gry():
+    wyświetl_planszę()
+    print('Ruch gracza : ', end='')
+    while 1:
+        try:
+            ruch = int(input())
+            break
+        except ValueError:
+         print("Błąd! Podaj liczbę.")
+    akcja, wygrana = ruch_gracza(plansza, gracz, ruch)
+    if not akcja:
+        print(' Błędny numer! Spróbuj ponownie')
+        continue
+    if wygrana:
+        wynik = 'Wygrał gracz!'
+        break
+    elif ruch_komputera()[1]:
+        wynik = 'Wygrał komputer'
+        break;
+
+wyświetl_planszę()
+print(wynik)
